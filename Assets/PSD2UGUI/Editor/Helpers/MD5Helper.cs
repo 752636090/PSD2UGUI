@@ -20,5 +20,10 @@ namespace PSD2UGUI
 		{
 			return MD5.Create().ComputeHash(bytes).ToHex("x2");
         }
+
+		public static string GetMD5(this Stream stream)
+		{
+			return MD5.Create().ComputeHash(stream).ToHex("x2");
+        }
 	}
 }

@@ -469,7 +469,7 @@ namespace PSD2UGUI
                     if (rectTransform.TryGetComponent(out Image image) && image.sprite != null)
                     {
                         oldTexture = image.sprite.texture;
-                        oldTexHash = image.sprite.GetTextureMD5();
+                        oldTexHash = oldTexture.GetFileMD5();
                         if (isSlice != (image.type == Image.Type.Sliced))
                         {
                             LogImportant($"Slice设置冲突：{rectTransform.name} 与 {layer.name}");
@@ -478,31 +478,28 @@ namespace PSD2UGUI
                     if (rectTransform.TryGetComponent(out RawImage rawImage) && rawImage.texture != null)
                     {
                         oldTexture = (Texture2D)rawImage.texture;
-                        oldTexHash = oldTexture.GetTextureMD5();
+                        oldTexHash = oldTexture.GetFileMD5();
                         if (isSlice)
                         {
                             LogImportant($"Slice设置冲突：{rectTransform.name} 与 {layer.name}");
                         }
                     }
                     //oldTexHash = oldTexture.GetTextureMD5();
-                    // Temp/PSD2UGUI/TempImages
-                    //using MemoryStream stream = new(texture.EncodeToPNG());
-                    //using CSImage csImage = CSImage.FromStream(stream); 
                     #endregion
 
                     #region 生成图片并引用
-                    if (newTexHash != oldTexHash && oldTexture != null)
-                    {
-                        string oldTexPath = AssetDatabase.GetAssetPath(oldTexture);
-                        if (!string.IsNullOrEmpty(oldTexPath))
-                        {
-                            oldTexHash = MD5Helper.FileMD5(oldTexPath);
-                            if (newTexHash == oldTexHash)
-                            {
-                                LogColor($"油腻锑发癫，重新读一下MD5 {oldTexPath}", "000000");
-                            }
-                        }
-                    }
+                    //if (newTexHash != oldTexHash && oldTexture != null)
+                    //{
+                    //    string oldTexPath = AssetDatabase.GetAssetPath(oldTexture);
+                    //    if (!string.IsNullOrEmpty(oldTexPath))
+                    //    {
+                    //        oldTexHash = MD5Helper.FileMD5(oldTexPath);
+                    //        if (newTexHash == oldTexHash)
+                    //        {
+                    //            LogColor($"油腻锑发癫1，重新读一下MD5 {oldTexPath}", "000000");
+                    //        }
+                    //    }
+                    //}
                     if (newTexHash != oldTexHash)
                     {
                         //Debug.Log($"{oldTexHash} -> {newTexHash}");
@@ -869,7 +866,8 @@ namespace PSD2UGUI
 
         private bool IsTextureInDefaultFolder(string path)
         {
-            return path.StartsWith(Path.Combine(Setting.UIImageFolder, PrefabName).Replace('\\', '/'));
+            string defaultFolder = Path.Combine(Setting.UIImageFolder, PrefabName).Replace('\\', '/');
+            return Path.GetDirectoryName(path).Replace('\\', '/') == defaultFolder;
         }
 
         private void CheckDeleteTextures(Transform prefab, HashSet<string> removedTextures)
@@ -877,14 +875,18 @@ namespace PSD2UGUI
             HashSet<Texture2D> referencedTextures = new();
             foreach (MaskableGraphic graphic in prefab.GetComponentsInChildren<MaskableGraphic>())
             {
-                referencedTextures.Add((Texture2D)graphic.mainTexture);
+                if (graphic.mainTexture is Texture2D texture)
+                {
+                    referencedTextures.Add(texture); 
+                }
             }
             foreach (string path in removedTextures)
             {
                 Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
                 if (!referencedTextures.Contains(texture))
                 {
-                    if (IsTextureInDefaultFolder(path) && !Setting.ImageManualFolders.Contains(path))
+                    if (IsTextureInDefaultFolder(path)
+                        /*&& Setting.ImageManualFolders.FindIndex(a => path.StartsWith(a)) < 0*/)
                     {
                         AssetDatabase.MoveAssetToTrash(path);
                         LogImportant($"移入回收站：{path}");

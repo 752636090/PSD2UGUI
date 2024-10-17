@@ -13,14 +13,14 @@ _ReSharper.CSharp/
 ~$*.xlsx.meta
 
 #Unity相关目录
-.gradle
-Bundles
-Library
-Logs
-UserSettings
+/.gradle
+/Bundles
+/Library
+/Logs
+/UserSettings
 /*.csproj
-*.vsconfig
-ProjectSettings/RiderScriptEditorPersistedState.asset
+/*.vsconfig
+/ProjectSettings/RiderScriptEditorPersistedState.asset
 
 HybridCLRData
 Assets/StreamingAssets/

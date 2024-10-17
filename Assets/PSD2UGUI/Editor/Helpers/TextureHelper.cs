@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Security.Policy;
@@ -15,7 +16,7 @@ namespace PSD2UGUI
 {
     internal static class TextureHelper
     {
-        public static Texture2D DeCompress(this Texture source)
+        public static Texture2D DeCompress(this Texture2D source)
         {
             RenderTexture renderTex = RenderTexture.GetTemporary(
                         source.width,
@@ -28,6 +29,7 @@ namespace PSD2UGUI
             RenderTexture previous = RenderTexture.active;
             RenderTexture.active = renderTex;
             Texture2D readableText = new Texture2D(source.width, source.height);
+            readableText.filterMode = FilterMode.Point;
             readableText.ReadPixels(new Rect(0, 0, renderTex.width, renderTex.height), 0, 0);
             readableText.Apply();
             RenderTexture.active = previous;
@@ -38,6 +40,7 @@ namespace PSD2UGUI
         public static Texture2D ToTexture2D(this Sprite sprite)
         {
             Texture2D texture = new((int)sprite.rect.width, (int)sprite.rect.height);
+            texture.name = sprite.name;
             Texture2D srcTexture = sprite.texture;
             if (!sprite.texture.isReadable)
             {
@@ -59,7 +62,7 @@ namespace PSD2UGUI
         /// <param name="horizontal">横向拉伸</param>
         /// <param name="vertical">纵向拉伸</param>
         /// <param name="apply"></param>
-        /// <returns>border: 左-上-右-下</returns>
+        /// <returns>border: 左-下-右-上</returns>
         public static (Texture2D texture, int4 border) Slice(this Texture2D self, bool horizontal, bool vertical)
         {
             // meta文件保存的顺序是左-下-右-上，然而Importer是左-上-右-下
@@ -87,6 +90,18 @@ namespace PSD2UGUI
                             same = false;
                             break;
                         }
+                        //if (x > 1)
+                        //{
+                        //    Color color3 = self.GetPixel(x - 2, y);
+                        //    if (math.abs(color1.r - color3.r) > 0.01f
+                        //        || math.abs(color1.g - color3.g) > 0.01f
+                        //        || math.abs(color1.b - color3.b) > 0.01f
+                        //        || math.abs(color1.a - color3.a) > 0.01f)
+                        //    {
+                        //        same = false;
+                        //        break;
+                        //    } 
+                        //}
                     }
                     if (same)
                     {
@@ -103,8 +118,9 @@ namespace PSD2UGUI
                     }
                 }
 
-                border.x = maxStartIndex;
-                border.z = self.width - (maxStartIndex + maxSameCount - 1) - 1;
+                int reduce = math.min(2, maxSameCount / 2 - 1);
+                border.x = maxStartIndex + reduce;
+                border.z = self.width - (maxStartIndex + maxSameCount - 1) - 1 + reduce;
             }
 
             if (vertical)
@@ -145,13 +161,14 @@ namespace PSD2UGUI
                     }
                 }
 
-                border.y = maxStartIndex;
-                border.w = self.height - (maxStartIndex + maxSameCount - 1) - 1;
+                int reduce = math.min(2, maxSameCount / 2 - 1);
+                border.y = maxStartIndex + reduce;
+                border.w = self.height - (maxStartIndex + maxSameCount - 1) - 1 + reduce;
             }
 
-            // border 左-上-右-下
-            int width = horizontal ? border.z + border.x : self.width;
-            int height = vertical ? border.w + border.y : self.height;
+            // border 左-下-右-上
+            int width = horizontal ? border.z + border.x + 1 : self.width;
+            int height = vertical ? border.w + border.y + 1 : self.height;
             Texture2D texture = new(width, height);
             for (int x = 0; x < width; x++)
             {
@@ -177,12 +194,27 @@ namespace PSD2UGUI
             return texture.DeCompress().EncodeToPNG().GetMD5();
         }
 
+        public static string GetTextureMD5ByCS(this Texture2D texture)
+        {
+            using MemoryStream stream1 = new(texture.DeCompress().EncodeToPNG());
+            using CSImage csImage = CSImage.FromStream(stream1);
+            using Bitmap bitmap = new(csImage);
+            using MemoryStream stream2 = new();
+            bitmap.Save(stream2, ImageFormat.Png);
+            stream2.Seek(0, SeekOrigin.Begin);
+            return stream2.GetMD5();
+        }
+
+        //public static string GetTextureMD5ByCS(this Texture2D texture)
+        //{
+        //}
+
         public static string GetFileMD5(this Texture2D texture)
         {
             string path = AssetDatabase.GetAssetPath(texture);
             if (path == null)
             {
-                Debug.LogError("文件不存在");
+                Debug.LogError($"文件不存在 {texture.name}");
                 return texture.GetTextureMD5();
             }
             return MD5Helper.FileMD5(path);
@@ -191,6 +223,15 @@ namespace PSD2UGUI
         public static void SaveAsSprite(this Texture2D texture, string path, int4 border = default)
         {
             FileHelper.CreateFile(path, texture.DeCompress().EncodeToPNG());
+            //using MemoryStream stream1 = new(texture.DeCompress().EncodeToPNG());
+            //using CSImage csImage = CSImage.FromStream(stream1);
+            //using Bitmap bitmap = new(csImage);
+            //string directory = Path.GetDirectoryName(path);
+            //if (!Directory.Exists(directory))
+            //{
+            //    Directory.CreateDirectory(directory);
+            //}
+            //bitmap.Save(path, ImageFormat.Png);
             AssetDatabase.ImportAsset(path);
             TextureImporter importer = (TextureImporter)AssetImporter.GetAtPath(path);
             importer.textureType = TextureImporterType.Sprite;

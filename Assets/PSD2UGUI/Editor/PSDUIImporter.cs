@@ -37,6 +37,9 @@ namespace PSD2UGUI
 
             FieldInfo m_DocumentAlignmentFieldInfo = typeof(PSDImporter).GetField("m_DocumentAlignment", BindingFlags.Instance | BindingFlags.NonPublic);
             m_DocumentAlignmentFieldInfo.SetValue(this, SpriteAlignment.Center);
+
+            FieldInfo m_ResliceFromLayerFieldInfo = typeof(PSDImporter).GetField("m_ResliceFromLayer", BindingFlags.Instance | BindingFlags.NonPublic);
+            m_ResliceFromLayerFieldInfo.SetValue(this, true);
         }
     } 
 }
