@@ -1,0 +1,14 @@
+{
+    "name": "PSD2UGUI.Runtime",
+    "rootNamespace": "PSD2UGUI",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
