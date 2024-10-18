@@ -552,6 +552,7 @@ namespace PSD2UGUI
                 }
                 #endregion
 
+                rectTransform.SetAsLastSibling();
                 if (tags.ContainsKey("Ref"))
                 {
                     UpdateRefRect(rectTransform, layer, layerInfo, isNewLayer);
