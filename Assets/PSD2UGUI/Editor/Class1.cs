@@ -89,8 +89,8 @@ namespace PSD2UGUI
         //    Debug.Log(MD5Helper.FileMD5("Assets/Demo/QQ20241015-162007_1.png"));
         //}
 
-        //[MenuItem("Test/TestCompareMd5Time")]
-        //public static void TestCompareMd5Time()
+        //[MenuItem("Test/TestMd5Time")]
+        //public static void TestMd5Time()
         //{
         //    string path = "Assets/Demo/Bundles/UIRes/DlgTest/图层 1.png";
         //    Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
@@ -122,25 +122,43 @@ namespace PSD2UGUI
         //    Debug.Log(AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Demo/QQ20241015-162007_3.png"));
         //}
 
-        //[MenuItem("Test/TestMd5Time")]
-        //public static void TestMd5Time()
+        //[MenuItem("Test/CompareConflitImage")]
+        //public static void CompareConflitImage()
         //{
-        //    using MemoryStream tempStream = new();
-        //    string path = "Assets/Demo/Bundles/UIRes";
-        //    DateTime time = DateTime.Now;
-        //    string[] paths = Directory.GetFiles(path, "*.png", SearchOption.AllDirectories);
-        //    for (int i = 0; i < 10; i++)
+        //    string path1 = "Assets/Demo/Bundles/UIRes/DlgTest/图层 2.png";
+        //    string path2 = "Assets/Demo/Bundles/UIRes/DlgTest/图层 222.png";
+        //    Debug.Log($"{MD5Helper.GetMD5(FileHelper.GetFileBuffer(path1))} {MD5Helper.GetMD5(FileHelper.GetFileBuffer(path2))}");
+        //    using CSImage image1 = CSImage.FromFile(path1);
+        //    using CSImage image2 = CSImage.FromFile(path2);
+        //    Debug.Log($"{image1.GetSimpleMD5()} {image2.GetSimpleMD5()}");
+        //    using Bitmap bitmap1 = new(image1);
+        //    using Bitmap bitmap2 = new(image2);
+        //    MemoryStream memoryStream1 = new();
+        //    MemoryStream memoryStream2 = new();
+        //    bitmap1.Save(memoryStream1, ImageFormat.Png);
+        //    bitmap1.Save(memoryStream2, ImageFormat.Png);
+        //    memoryStream1.Seek(0, SeekOrigin.Begin);
+        //    memoryStream2.Seek(0, SeekOrigin.Begin);
+        //    Debug.Log($"{memoryStream1.GetMD5()} {memoryStream2.GetMD5()}");
+        //    Debug.Log($"{bitmap1.Width}-{bitmap1.Height} - {bitmap2.Width}-{bitmap2.Height}");
+        //    int logCount = 0;
+        //    for (int x = 0; x < bitmap1.Width; x++)
         //    {
-        //        foreach (string absPath in paths)
+        //        for (int y = 0; y < bitmap1.Height; y++)
         //        {
-        //            using CSImage image = CSImage.FromFile(absPath);
-        //            tempStream.SetLength(0);
-        //            tempStream.Seek(0, SeekOrigin.Begin);
-        //            string md5 = image.GetMD5(tempStream);
-        //            //Debug.Log(md5);
+        //            var color1 = bitmap1.GetPixel(x, y);
+        //            var color2 = bitmap2.GetPixel(x, y);
+        //            if (color1 != color2)
+        //            {
+        //                Debug.Log($"({x},{y}): {color1} - {color2}");
+        //                logCount++;
+        //                if (logCount > 200)
+        //                {
+        //                    return;
+        //                }
+        //            }
         //        }
         //    }
-        //    Debug.Log(DateTime.Now - time);
         //}
     }
 }

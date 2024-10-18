@@ -18,6 +18,8 @@ namespace PSD2UGUI
             textureImporterSettings.readable = true;
             textureImporterSettings.filterMode = FilterMode.Point;
             textureImporterSettings.mipmapEnabled = false;
+            textureImporterSettings.npotScale = TextureImporterNPOTScale.None;
+            textureImporterSettings.aniso = 0;
 
             FieldInfo m_PlatformSettingsFieldInfo = typeof(PSDImporter).GetField("m_PlatformSettings", BindingFlags.Instance | BindingFlags.NonPublic);
             List<TextureImporterPlatformSettings> m_PlatformSettings = (List<TextureImporterPlatformSettings>)m_PlatformSettingsFieldInfo.GetValue(this);

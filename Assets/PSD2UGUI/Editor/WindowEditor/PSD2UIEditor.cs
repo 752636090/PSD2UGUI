@@ -469,7 +469,7 @@ namespace PSD2UGUI
                     if (rectTransform.TryGetComponent(out Image image) && image.sprite != null)
                     {
                         oldTexture = image.sprite.texture;
-                        oldTexHash = oldTexture.GetTextureMD5();
+                        oldTexHash = oldTexture.GetFileMD5();
                         if (isSlice != (image.type == Image.Type.Sliced))
                         {
                             LogImportant($"Slice设置冲突：{rectTransform.name} 与 {layer.name}");
@@ -478,7 +478,7 @@ namespace PSD2UGUI
                     if (rectTransform.TryGetComponent(out RawImage rawImage) && rawImage.texture != null)
                     {
                         oldTexture = (Texture2D)rawImage.texture;
-                        oldTexHash = oldTexture.GetTextureMD5();
+                        oldTexHash = oldTexture.GetFileMD5();
                         if (isSlice)
                         {
                             LogImportant($"Slice设置冲突：{rectTransform.name} 与 {layer.name}");
@@ -517,6 +517,17 @@ namespace PSD2UGUI
                         {
                             texturePath = imageHashMap.GetKeyByValue(newTexHash);
                             Log($"{rectTransform.name}引用现有图片{texturePath}");
+                            string refFolderName = Path.GetFileName(Path.GetDirectoryName(texturePath));
+                            if (refFolderName != PrefabName)
+                            {
+                                foreach (UIAssetTypeSetting item in Setting.AssetTypeSettings)
+                                {
+                                    if (Regex.IsMatch(refFolderName, item.NamePattern))
+                                    {
+                                        LogMostImportant($"{rectTransform.name} 引用了其它自动文件夹的图片 {texturePath}");
+                                    }
+                                } 
+                            }
                         }
                         else
                         {
@@ -592,23 +603,45 @@ namespace PSD2UGUI
             }
 
             DoubleMap<string, string> imageHashMap = new();
-            MemoryStream tempStream = new();
             string[] paths = Directory.GetFiles(Setting.UIImageFolder, "*.png", SearchOption.AllDirectories);
             for (int i = 0; i < paths.Length; i++)
             {
                 EditorUtility.DisplayProgressBar("收集现有图片信息", $"{i}/{paths.Length}", (float)i / paths.Length);
                 string absPath = paths[i];
                 string path = absPath[absPath.IndexOf(Setting.UIImageFolder)..].Replace('\\', '/');
-                using CSImage image = CSImage.FromFile(absPath);
-                tempStream.SetLength(0);
-                tempStream.Seek(0, SeekOrigin.Begin);
-                string md5 = image.GetMD5(tempStream);
-                imageHashMap.Add(absPath, image.GetMD5(tempStream));
+                imageHashMap.Add(path, MD5Helper.FileMD5(path));
                 EditorUtility.ClearProgressBar();
             }
 
             return imageHashMap;
         }
+
+        //private DoubleMap<string, string> CollectProjectUIImageHashMap()
+        //{
+        //    if (!Directory.Exists(Setting.UIImageFolder))
+        //    {
+        //        DisplayErrorDialog("文件夹不存在，请检查ProjectSettings-PSD2UGUI-UIImageFolder");
+        //        return null;
+        //    }
+
+        //    DoubleMap<string, string> imageHashMap = new();
+        //    MemoryStream tempStream = new();
+        //    string[] paths = Directory.GetFiles(Setting.UIImageFolder, "*.png", SearchOption.AllDirectories);
+        //    for (int i = 0; i < paths.Length; i++)
+        //    {
+        //        EditorUtility.DisplayProgressBar("收集现有图片信息", $"{i}/{paths.Length}", (float)i / paths.Length);
+        //        string absPath = paths[i];
+        //        string path = absPath[absPath.IndexOf(Setting.UIImageFolder)..].Replace('\\', '/');
+        //        using CSImage image = CSImage.FromFile(absPath);
+        //        tempStream.SetLength(0);
+        //        tempStream.Seek(0, SeekOrigin.Begin);
+        //        string md5 = image.GetMD5(tempStream);
+        //        imageHashMap.Add(absPath, image.GetMD5(tempStream));
+        //        EditorUtility.ClearProgressBar();
+        //    }
+
+        //    return imageHashMap;
+        //}
 
         private void UpdateRect(RectTransform rectTransform, Transform layer, PSDLayerGenInfo layerInfo, bool isNew)
         {
@@ -878,7 +911,7 @@ namespace PSD2UGUI
             foreach (string path in removedTextures)
             {
                 Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
-                if (!referencedTextures.Contains(texture))
+                if (texture != null && !referencedTextures.Contains(texture))
                 {
                     if (IsTextureInDefaultFolder(path)
                         /*&& Setting.ImageManualFolders.FindIndex(a => path.StartsWith(a)) < 0*/)
@@ -1002,6 +1035,11 @@ namespace PSD2UGUI
         private static void LogImportant(string message)
         {
             LogColor(message, "BB2222");
+        }
+
+        private static void LogMostImportant(string message)
+        {
+            LogColor(message, "FF0000");
         }
 
         private static void LogColor(string message, string color)

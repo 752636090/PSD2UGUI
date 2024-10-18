@@ -4,7 +4,6 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
 using System.Security.Policy;
 using Unity.Mathematics;
 using UnityEditor;
@@ -18,8 +17,12 @@ namespace PSD2UGUI
 {
     internal static class TextureHelper
     {
-        public static Texture2D DeCompress(this Texture2D source)
+        public static Texture2D DeCompress(this Texture2D source, Rect rect = default)
         {
+            if (rect == default)
+            {
+                rect = new Rect(0, 0, source.width, source.height);
+            }
             RenderTexture renderTex = RenderTexture.GetTemporary(
                         source.width,
                         source.height,
@@ -30,9 +33,10 @@ namespace PSD2UGUI
             Graphics.Blit(source, renderTex);
             RenderTexture previous = RenderTexture.active;
             RenderTexture.active = renderTex;
-            Texture2D readableText = new Texture2D(source.width, source.height);
+            Texture2D readableText = new((int)rect.width, (int)rect.height);
             readableText.filterMode = FilterMode.Point;
-            readableText.ReadPixels(new Rect(0, 0, renderTex.width, renderTex.height), 0, 0);
+            rect.position = new(rect.position.x, source.height - rect.position.y - rect.height);
+            readableText.ReadPixels(rect, 0, 0, false);
             readableText.Apply();
             RenderTexture.active = previous;
             RenderTexture.ReleaseTemporary(renderTex);
@@ -41,18 +45,24 @@ namespace PSD2UGUI
 
         public static Texture2D ToTexture2D(this Sprite sprite)
         {
-            Texture2D texture = new((int)sprite.rect.width, (int)sprite.rect.height);
-            texture.name = sprite.name;
+            //Texture2D texture = new((int)sprite.rect.width, (int)sprite.rect.height);
+            //texture.anisoLevel = 0;
+            //texture.filterMode = FilterMode.Point;
+            //texture.name = sprite.name;
+            //Texture2D srcTexture = sprite.texture;
+            //if (!sprite.texture.isReadable)
+            //{
+            //    srcTexture = srcTexture.DeCompress();
+            //}
+            //texture.SetPixels(srcTexture.GetPixels(
+            //    (int)sprite.textureRect.x,
+            //    (int)sprite.textureRect.y,
+            //    (int)sprite.textureRect.width,
+            //    (int)sprite.textureRect.height));
+            //texture.Apply();
+            //return texture;
             Texture2D srcTexture = sprite.texture;
-            srcTexture = srcTexture.DeCompress();
-            texture.filterMode = FilterMode.Point;
-            texture.SetPixels(srcTexture.GetPixels(
-                (int)sprite.textureRect.x,
-                (int)sprite.textureRect.y,
-                (int)sprite.textureRect.width,
-                (int)sprite.textureRect.height));
-            texture.Apply();
-            return texture;
+            return srcTexture.DeCompress(sprite.textureRect);
         }
 
         /// <summary>
@@ -121,6 +131,13 @@ namespace PSD2UGUI
                 int reduce = math.min(2, maxSameCount / 2 - 1);
                 border.x = maxStartIndex + reduce;
                 border.z = self.width - (maxStartIndex + maxSameCount - 1) - 1 + reduce;
+                // 使图片分辨率为4的倍数
+                int outputLen = border.x + border.z + 1;
+                int mod = outputLen % 4;
+                if (mod > 0 && outputLen + 4 - mod < self.width)
+                {
+                    border.x += 4 - mod;
+                }
             }
 
             if (vertical)
@@ -164,6 +181,13 @@ namespace PSD2UGUI
                 int reduce = math.min(2, maxSameCount / 2 - 1);
                 border.y = maxStartIndex + reduce;
                 border.w = self.height - (maxStartIndex + maxSameCount - 1) - 1 + reduce;
+                // 使图片分辨率为4的倍数
+                int outputLen = border.y + border.w + 1;
+                int mod = outputLen % 4;
+                if (mod > 0 && outputLen + 4 - mod < self.height)
+                {
+                    border.y += 4 - mod;
+                }
             }
 
             // border 左-下-右-上
@@ -189,7 +213,54 @@ namespace PSD2UGUI
             return texture.GetTextureMD5();
         }
 
-        public static string GetTextureMD5(this Texture2D source)
+        public static string GetTextureMD5(this Texture2D texture)
+        {
+            using Bitmap bitmap = texture.ToBitmap();
+            using MemoryStream stream = new();
+            bitmap.Save(stream, ImageFormat.Png);
+            stream.Seek(0, SeekOrigin.Begin);
+            return stream.GetMD5();
+        }
+
+        public static Bitmap ToBitmap(this Texture2D texture)
+        {
+            if (!texture.isReadable)
+            {
+                texture = texture.DeCompress();
+            }
+
+            using MemoryStream stream = new(texture.DeCompress().EncodeToPNG());
+            using CSImage csImage = CSImage.FromStream(stream);
+            return new(csImage);
+        }
+
+        //public static string GetTextureMD5ByCS(this Texture2D texture)
+        //{
+        //    using MemoryStream stream1 = new(texture.DeCompress().EncodeToPNG());
+        //    using CSImage csImage = CSImage.FromStream(stream1);
+        //    using Bitmap bitmap = new(csImage);
+        //    using MemoryStream stream2 = new();
+        //    bitmap.Save(stream2, ImageFormat.Png);
+        //    stream2.Seek(0, SeekOrigin.Begin);
+        //    return stream2.GetMD5();
+        //}
+
+        //public static string GetTextureMD5ByCS(this Texture2D texture)
+        //{
+        //}
+
+        public static string GetFileMD5(this Texture2D texture)
+        {
+            string path = AssetDatabase.GetAssetPath(texture);
+            if (path == null)
+            {
+                Debug.LogError($"文件不存在 {texture.name}");
+                return texture.GetTextureMD5();
+            }
+            return MD5Helper.FileMD5(path);
+        }
+
+        public static string GetSimpleMD5(this Texture2D source)
         {
             //return texture.DeCompress().EncodeToPNG().GetMD5();
             RenderTexture renderTex = RenderTexture.GetTemporary(
@@ -225,7 +296,7 @@ namespace PSD2UGUI
             return stream.GetMD5();
         }
 
-        public static string GetMD5(this CSImage image, MemoryStream tempStream = null)
+        public static string GetSimpleMD5(this CSImage image, MemoryStream tempStream = null)
         {
             bool needDispose = tempStream == null;
             tempStream = tempStream ?? new();
@@ -253,44 +324,17 @@ namespace PSD2UGUI
             return md5;
         }
 
-        //public static string GetTextureMD5ByCS(this Texture2D texture)
-        //{
-        //    using MemoryStream stream1 = new(texture.DeCompress().EncodeToPNG());
-        //    using CSImage csImage = CSImage.FromStream(stream1);
-        //    using Bitmap bitmap = new(csImage);
-        //    using MemoryStream stream2 = new();
-        //    bitmap.Save(stream2, ImageFormat.Png);
-        //    stream2.Seek(0, SeekOrigin.Begin);
-        //    return stream2.GetMD5();
-        //}
-
-        //public static string GetTextureMD5ByCS(this Texture2D texture)
-        //{
-        //}
-
-        //public static string GetFileMD5(this Texture2D texture)
-        //{
-        //    string path = AssetDatabase.GetAssetPath(texture);
-        //    if (path == null)
-        //    {
-        //        Debug.LogError($"文件不存在 {texture.name}");
-        //        return texture.GetTextureMD5();
-        //    }
-        //    return MD5Helper.FileMD5(path);
-        //}
-
         public static void SaveAsSprite(this Texture2D texture, string path, int4 border = default)
         {
-            FileHelper.CreateFile(path, texture.DeCompress().EncodeToPNG());
-            //using MemoryStream stream1 = new(texture.DeCompress().EncodeToPNG());
-            //using CSImage csImage = CSImage.FromStream(stream1);
-            //using Bitmap bitmap = new(csImage);
-            //string directory = Path.GetDirectoryName(path);
-            //if (!Directory.Exists(directory))
-            //{
-            //    Directory.CreateDirectory(directory);
-            //}
-            //bitmap.Save(path, ImageFormat.Png);
+            using MemoryStream stream = new(texture.DeCompress().EncodeToPNG());
+            using CSImage csImage = CSImage.FromStream(stream);
+            using Bitmap bitmap = new(csImage);
+            string directory = Path.GetDirectoryName(path);
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+            bitmap.Save(path, ImageFormat.Png);
             AssetDatabase.ImportAsset(path);
             TextureImporter importer = (TextureImporter)AssetImporter.GetAtPath(path);
             importer.textureType = TextureImporterType.Sprite;

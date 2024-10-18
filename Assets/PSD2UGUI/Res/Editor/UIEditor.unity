@@ -762,7 +762,7 @@ RectTransform:
   m_Children:
   - {fileID: 718860494}
   - {fileID: 8128162326425274273}
-  - {fileID: 6114665953415681815}
+  - {fileID: 332545038696489355}
   m_Father: {fileID: 1784017108}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1070,7 +1070,7 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!1001 &6114665953415681814
+--- !u!1001 &332545038696489354
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -1188,11 +1188,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 86dd2d92d7229384d9149b8ab06599ef, type: 3}
---- !u!224 &6114665953415681815 stripped
+--- !u!224 &332545038696489355 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 5052244881580209952, guid: 86dd2d92d7229384d9149b8ab06599ef,
     type: 3}
-  m_PrefabInstance: {fileID: 6114665953415681814}
+  m_PrefabInstance: {fileID: 332545038696489354}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &8128162326425274272
 PrefabInstance:
