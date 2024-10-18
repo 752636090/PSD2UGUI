@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Security.Policy;
 using Unity.Mathematics;
 using UnityEditor;
@@ -11,6 +12,7 @@ using UnityEngine;
 using Color = UnityEngine.Color;
 using CSImage = System.Drawing.Image;
 using Graphics = UnityEngine.Graphics;
+using CSColor = System.Drawing.Color;
 
 namespace PSD2UGUI
 {
@@ -42,10 +44,8 @@ namespace PSD2UGUI
             Texture2D texture = new((int)sprite.rect.width, (int)sprite.rect.height);
             texture.name = sprite.name;
             Texture2D srcTexture = sprite.texture;
-            if (!sprite.texture.isReadable)
-            {
-                srcTexture = srcTexture.DeCompress();
-            }
+            srcTexture = srcTexture.DeCompress();
+            texture.filterMode = FilterMode.Point;
             texture.SetPixels(srcTexture.GetPixels(
                 (int)sprite.textureRect.x,
                 (int)sprite.textureRect.y,
@@ -189,36 +189,95 @@ namespace PSD2UGUI
             return texture.GetTextureMD5();
         }
 
-        public static string GetTextureMD5(this Texture2D texture)
+        public static string GetTextureMD5(this Texture2D source)
         {
-            return texture.DeCompress().EncodeToPNG().GetMD5();
+            //return texture.DeCompress().EncodeToPNG().GetMD5();
+            RenderTexture renderTex = RenderTexture.GetTemporary(
+                        source.width,
+                        source.height,
+                        0,
+                        RenderTextureFormat.Default,
+                        RenderTextureReadWrite.Default);
+
+            Graphics.Blit(source, renderTex);
+            RenderTexture previous = RenderTexture.active;
+            RenderTexture.active = renderTex;
+            Texture2D texture = new Texture2D(source.width, source.height);
+            texture.filterMode = FilterMode.Point;
+            texture.ReadPixels(new Rect(0, 0, renderTex.width, renderTex.height), 0, 0);
+            //readableText.Apply();
+            RenderTexture.active = previous;
+
+            using MemoryStream stream = new();
+            for (int x = 0; x < texture.width; x++)
+            {
+                for (int y = 0; y < texture.height; y++)
+                {
+                    Color color = texture.GetPixel(x, y);
+                    int simplePixel = ((int)math.round(color.r * 2) << 6)
+                        | ((int)math.round(color.g * 2) << 4)
+                        | ((int)math.round(color.b * 2) << 2)
+                        | ((int)math.round(color.a * 2) << 0);
+                    stream.WriteByte((byte)simplePixel);
+                }
+            }
+            stream.Seek(0, SeekOrigin.Begin);
+            return stream.GetMD5();
         }
 
-        public static string GetTextureMD5ByCS(this Texture2D texture)
+        public static string GetMD5(this CSImage image, MemoryStream tempStream = null)
         {
-            using MemoryStream stream1 = new(texture.DeCompress().EncodeToPNG());
-            using CSImage csImage = CSImage.FromStream(stream1);
-            using Bitmap bitmap = new(csImage);
-            using MemoryStream stream2 = new();
-            bitmap.Save(stream2, ImageFormat.Png);
-            stream2.Seek(0, SeekOrigin.Begin);
-            return stream2.GetMD5();
+            bool needDispose = tempStream == null;
+            tempStream = tempStream ?? new();
+            tempStream.SetLength(0);
+            tempStream.Seek(0, SeekOrigin.Begin);
+            using Bitmap bitmap = new(image);
+            for (int x = 0; x < bitmap.Width; x++)
+            {
+                for (int y = 0; y < bitmap.Height; y++)
+                {
+                    CSColor color = bitmap.GetPixel(x, y);
+                    int simplePixel = ((int)math.round(color.R * 2 / 256f) << 6)
+                        | ((int)math.round(color.G * 2 / 256f) << 4)
+                        | ((int)math.round(color.B * 2 / 256f) << 2)
+                        | ((int)math.round(color.A * 2 / 256f) << 0);
+                    tempStream.WriteByte((byte)simplePixel);
+                }
+            }
+            tempStream.Seek(0, SeekOrigin.Begin);
+            string md5 = tempStream.GetMD5();
+            if (needDispose)
+            {
+                tempStream.Dispose();
+            }
+            return md5;
         }
+
+        //public static string GetTextureMD5ByCS(this Texture2D texture)
+        //{
+        //    using MemoryStream stream1 = new(texture.DeCompress().EncodeToPNG());
+        //    using CSImage csImage = CSImage.FromStream(stream1);
+        //    using Bitmap bitmap = new(csImage);
+        //    using MemoryStream stream2 = new();
+        //    bitmap.Save(stream2, ImageFormat.Png);
+        //    stream2.Seek(0, SeekOrigin.Begin);
+        //    return stream2.GetMD5();
+        //}
 
         //public static string GetTextureMD5ByCS(this Texture2D texture)
         //{
         //}
 
-        public static string GetFileMD5(this Texture2D texture)
-        {
-            string path = AssetDatabase.GetAssetPath(texture);
-            if (path == null)
-            {
-                Debug.LogError($"文件不存在 {texture.name}");
-                return texture.GetTextureMD5();
-            }
-            return MD5Helper.FileMD5(path);
-        }
+        //public static string GetFileMD5(this Texture2D texture)
+        //{
+        //    string path = AssetDatabase.GetAssetPath(texture);
+        //    if (path == null)
+        //    {
+        //        Debug.LogError($"文件不存在 {texture.name}");
+        //        return texture.GetTextureMD5();
+        //    }
+        //    return MD5Helper.FileMD5(path);
+        //}
 
         public static void SaveAsSprite(this Texture2D texture, string path, int4 border = default)
         {

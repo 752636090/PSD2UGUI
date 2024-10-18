@@ -469,7 +469,7 @@ namespace PSD2UGUI
                     if (rectTransform.TryGetComponent(out Image image) && image.sprite != null)
                     {
                         oldTexture = image.sprite.texture;
-                        oldTexHash = oldTexture.GetFileMD5();
+                        oldTexHash = oldTexture.GetTextureMD5();
                         if (isSlice != (image.type == Image.Type.Sliced))
                         {
                             LogImportant($"Slice设置冲突：{rectTransform.name} 与 {layer.name}");
@@ -478,7 +478,7 @@ namespace PSD2UGUI
                     if (rectTransform.TryGetComponent(out RawImage rawImage) && rawImage.texture != null)
                     {
                         oldTexture = (Texture2D)rawImage.texture;
-                        oldTexHash = oldTexture.GetFileMD5();
+                        oldTexHash = oldTexture.GetTextureMD5();
                         if (isSlice)
                         {
                             LogImportant($"Slice设置冲突：{rectTransform.name} 与 {layer.name}");
@@ -592,24 +592,19 @@ namespace PSD2UGUI
             }
 
             DoubleMap<string, string> imageHashMap = new();
-            foreach (string absPath in Directory.GetFiles(Setting.UIImageFolder, "*.png", SearchOption.AllDirectories))
+            MemoryStream tempStream = new();
+            string[] paths = Directory.GetFiles(Setting.UIImageFolder, "*.png", SearchOption.AllDirectories);
+            for (int i = 0; i < paths.Length; i++)
             {
+                EditorUtility.DisplayProgressBar("收集现有图片信息", $"{i}/{paths.Length}", (float)i / paths.Length);
+                string absPath = paths[i];
                 string path = absPath[absPath.IndexOf(Setting.UIImageFolder)..].Replace('\\', '/');
-                //using CSImage image = CSImage.FromFile(path);
-                //using Bitmap bitmap = new(image);
-                imageHashMap.Add(path, MD5Helper.FileMD5(path));
-                //DateTime time = DateTime.Now;
-                //for (int i = 0; i < 10; i++)
-                //{
-                //    MD5Helper.FileMD5(path);
-                //}
-                //Debug.Log((DateTime.Now - time).Ticks);
-                //time = DateTime.Now;
-                //for (int i = 0; i < 10; i++)
-                //{
-                //    AssetDatabase.LoadAssetAtPath<Texture2D>(path).DeCompress().EncodeToPNG().GetMD5();
-                //}
-                //Debug.Log((DateTime.Now - time).Ticks);
+                using CSImage image = CSImage.FromFile(absPath);
+                tempStream.SetLength(0);
+                tempStream.Seek(0, SeekOrigin.Begin);
+                string md5 = image.GetMD5(tempStream);
+                imageHashMap.Add(absPath, image.GetMD5(tempStream));
+                EditorUtility.ClearProgressBar();
             }
 
             return imageHashMap;

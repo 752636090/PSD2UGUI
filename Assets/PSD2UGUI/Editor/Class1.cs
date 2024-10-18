@@ -89,8 +89,8 @@ namespace PSD2UGUI
         //    Debug.Log(MD5Helper.FileMD5("Assets/Demo/QQ20241015-162007_1.png"));
         //}
 
-        //[MenuItem("Test/TestMd5Time")]
-        //public static void TestMd5Time()
+        //[MenuItem("Test/TestCompareMd5Time")]
+        //public static void TestCompareMd5Time()
         //{
         //    string path = "Assets/Demo/Bundles/UIRes/DlgTest/图层 1.png";
         //    Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
@@ -120,6 +120,27 @@ namespace PSD2UGUI
         //    Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
         //    texture.SaveAsSprite("Assets/Demo/QQ20241015-162007_3.png");
         //    Debug.Log(AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Demo/QQ20241015-162007_3.png"));
+        //}
+
+        //[MenuItem("Test/TestMd5Time")]
+        //public static void TestMd5Time()
+        //{
+        //    using MemoryStream tempStream = new();
+        //    string path = "Assets/Demo/Bundles/UIRes";
+        //    DateTime time = DateTime.Now;
+        //    string[] paths = Directory.GetFiles(path, "*.png", SearchOption.AllDirectories);
+        //    for (int i = 0; i < 10; i++)
+        //    {
+        //        foreach (string absPath in paths)
+        //        {
+        //            using CSImage image = CSImage.FromFile(absPath);
+        //            tempStream.SetLength(0);
+        //            tempStream.Seek(0, SeekOrigin.Begin);
+        //            string md5 = image.GetMD5(tempStream);
+        //            //Debug.Log(md5);
+        //        }
+        //    }
+        //    Debug.Log(DateTime.Now - time);
         //}
     }
 }
