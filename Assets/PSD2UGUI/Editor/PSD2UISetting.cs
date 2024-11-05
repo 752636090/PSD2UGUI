@@ -37,13 +37,16 @@ namespace PSD2UGUI
         public List<string> ImageManualFolders = new();
 
         [TypeDrawerSettings(BaseType = typeof(Image))]
-        public Type ImageType;
+        public Type ImageType = typeof(Image);
 
         [TypeDrawerSettings(BaseType = typeof(RawImage))]
-        public Type RawImageType;
+        public Type RawImageType = typeof(RawImage);
 
         [Tooltip("新增图片如果不是Slice类型，只要分辨率面积大小达到该值就会自动添加RawImage，否则添加Image")]
         public float RawImageMinResolution;
+
+        [TypeDrawerSettings(BaseType = typeof(PSD2UICustomHandler))]
+        public Type HandlerType = typeof(PSD2UICustomHandler);
 
         [LabelText("最大日志数量")]
         [Tooltip("不管子文件夹；0表示无穷大")]

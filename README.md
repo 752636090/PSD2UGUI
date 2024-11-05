@@ -9,7 +9,8 @@
 
 # 重要引用插件
 1. Odin（需自己导入）
-2. 2D PSD Importer（Unity官方包，项目中已导入）
+2. com.unity.2d.psdimporter（Unity官方包，项目中已导入）
+3. com.unity.mathematics（Unity官方包，项目中已导入）
 
 # 设置方式
 ProjectSettings-PSD2UGUI，里面有很多Tooltip，遇到不懂的设置可以试试看一下Tooptip

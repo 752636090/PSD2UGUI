@@ -1,4 +1,3 @@
-using NUnit.Framework.Internal;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities;
@@ -154,6 +153,13 @@ namespace PSD2UGUI
                 DisplayErrorDialog("未设置 ProjectSettings-PSD2UGUI");
                 return false;
             }
+
+            if (Setting.HandlerType == null)
+            {
+                DisplayErrorDialog("未设置 ProjectSettings-PSD2UGUI-HandlerType");
+                return false;
+            }
+            PSD2UICustomHandler customHandler = (PSD2UICustomHandler)Activator.CreateInstance(Setting.HandlerType);
 
             if (PsdFile == null)
             {
@@ -552,6 +558,150 @@ namespace PSD2UGUI
                 }
                 #endregion
 
+                #region Layout
+                if (layer.childCount > 2 && !tags.ContainsKey("Ref"))
+                {
+                    RectOffsetStruct padding = new(int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue);
+                    Vector2 spacing = default;
+                    HashSet<float> childrenXSet = new();
+                    HashSet<float> childrenYSet = new();
+                    foreach (Transform psdChild in layer)
+                    {
+                        Vector2 childPos = GetPsdLayerPosition(psdChild);
+                        Vector2 childSize = GetPsdSize(psdChild);
+                        Vector2 childTopLeftPos = new(childPos.x - childSize.x / 2, childPos.y + childSize.y / 2);
+                        childrenXSet.Add(childTopLeftPos.x);
+                        childrenYSet.Add(childTopLeftPos.y);
+                    }
+
+                    bool isHorizontalLayout = childrenYSet.Count > 1; // 后面会继续检查
+                    bool isVerticalLayout = childrenYSet.Count > 1; // 后面会继续检查
+
+                    #region 检查是否有layout, 计算spacing
+                    List<float> childrenXs = new(childrenXSet);
+                    childrenXs.Sort();
+                    for (int i = 1; i < childrenXs.Count; i++)
+                    {
+                        float diff = childrenXs[i] - childrenXs[i - 1];
+                        if (spacing.x == 0)
+                        {
+                            spacing.x = diff;
+                        }
+                        else if (diff != spacing.x)
+                        {
+                            isHorizontalLayout = false;
+                            spacing.x = 0;
+                            break;
+                        }
+                    }
+
+                    List<float> childrenYs = new(childrenYSet);
+                    childrenYs.Sort();
+                    for (int i = 1; i < childrenYs.Count; i++)
+                    {
+                        float diff = childrenYs[i] - childrenYs[i - 1];
+                        if (spacing.y == 0)
+                        {
+                            spacing.y = diff;
+                        }
+                        else if (diff != spacing.y)
+                        {
+                            isVerticalLayout = false;
+                            spacing.y = 0;
+                            break;
+                        }
+                    }
+                    #endregion
+
+                    if (isHorizontalLayout || isVerticalLayout)
+                    {
+                        Vector2 selfPos = GetPsdLayerPosition(layer);
+                        Vector2 selfSize = GetPsdSize(layer);
+                        Rect selfRect = new(selfPos - selfSize / 2, selfSize);
+                        foreach (Transform psdChild in layer)
+                        {
+                            Vector2 childPos = GetPsdLayerPosition(psdChild);
+                            Vector2 childSize = GetPsdSize(psdChild);
+                            Rect childRect = new(childPos - childSize / 2, childSize);
+                            padding.left = math.min(padding.left, (int)(childRect.xMin - selfRect.xMin));
+                            padding.right = math.min(padding.right, (int)(selfRect.xMax - childRect.xMax));
+                            padding.bottom = math.min(padding.bottom, (int)(childRect.yMin - selfRect.yMin));
+                            padding.top = math.min(padding.top, (int)(selfRect.yMax - childRect.yMax));
+                        }
+                        
+                        if (isNewLayer)
+                        {
+                            LogImportant($"{rectTransform.GetRelativePath(prefab.transform)} 可能是规则的Layout，看情况手动给它加Layout组件，加完以后可手动点击PSDLayerGenInfo的“UpdateLayout”按钮");
+                        }
+
+                        #region 若找到已有LayoutGroup，则自动修改
+                        if (!isNewLayer && (layerInfo.LayoutPadding != padding || layerInfo.LayoutSpacing != spacing || layerInfo.LayoutItemSize != GetPsdSize(layer.GetChild(0))))
+                        {
+                            if (!rectTransform.TryGetComponent(out LayoutGroup layoutGroup))
+                            {
+                                LayoutGroup _layoutGroup = rectTransform.GetComponentInChildren<LayoutGroup>();
+                                if (_layoutGroup != null && !_layoutGroup.transform.TryGetComponent(out PSDLayerGenInfo _))
+                                {
+                                    layoutGroup = _layoutGroup;
+                                }
+                            }
+
+                            if (layoutGroup != null)
+                            {
+                                LogColor($"{layerName}的Layout信息变化，自动改变{rectTransform.name}(或子物体)中的Layout组件", "F6F63F");
+                                Vector2 spacingInInspector;
+                                layoutGroup.padding.left += padding.left - layerInfo.LayoutPadding.left;
+                                layoutGroup.padding.right += padding.right - layerInfo.LayoutPadding.right;
+                                layoutGroup.padding.top += padding.top - layerInfo.LayoutPadding.top;
+                                layoutGroup.padding.bottom += padding.bottom - layerInfo.LayoutPadding.bottom;
+
+                                RectTransform item = layoutGroup.transform.childCount > 0
+                                    ? (RectTransform)layoutGroup.transform.GetChild(0)
+                                    : customHandler.GetItemPrefab(rectTransform);
+                                if (item != null)
+                                {
+                                    Vector2 itemSize = item.TryGetComponent(out LayoutElement layoutElement) && (layoutElement.preferredWidth > 0 || layoutElement.preferredHeight > 0)
+                                        ? new Vector2(layoutElement.preferredWidth, layoutElement.preferredHeight)
+                                        : item.rect.size;
+                                    if (itemSize == default) // 被GridLayoutGroup控制了
+                                    {
+                                        itemSize = GetPsdSize(layer.GetChild(0));
+                                    }
+                                    spacingInInspector = spacing - itemSize;
+
+                                    if (layoutGroup is HorizontalLayoutGroup horizontalLayoutGroup)
+                                    {
+                                        horizontalLayoutGroup.spacing = spacingInInspector.x;
+                                    }
+                                    else if (layoutGroup is VerticalLayoutGroup verticalLayoutGroup)
+                                    {
+                                        verticalLayoutGroup.spacing = spacingInInspector.y;
+                                    }
+                                    else if (layoutGroup is GridLayoutGroup gridLayoutGroup)
+                                    {
+                                        gridLayoutGroup.spacing = spacingInInspector;
+                                        gridLayoutGroup.cellSize = itemSize;
+                                    }
+                                }
+                                else
+                                {
+                                    LogImportant($"找不到Item，如果Item大小变了，仍需手动修改Layout组件的spacing和cellSize。建议参考Demo的MyPSD2UIHandler");
+                                }
+                            }
+                            else
+                            {
+                                Log($"{layerName}的Layout信息变化，找不到{rectTransform.name}(或子物体)中合适的Layout组件");
+                            }
+                        }
+                        #endregion
+
+                        layerInfo.LayoutPadding = padding;
+                        layerInfo.LayoutSpacing = spacing;
+                        layerInfo.LayoutItemSize = GetPsdSize(layer.GetChild(0));
+                    }
+                }
+                #endregion
+
                 rectTransform.SetAsLastSibling();
                 if (tags.ContainsKey("Ref"))
                 {
@@ -650,6 +800,7 @@ namespace PSD2UGUI
             Vector2 srcPos = GetPsdLayerPosition(layer);
             Vector2 srcSize = GetPsdSize(layer);
             Rect psdLayerRect = new(srcPos - srcSize / 2, srcSize);
+            bool forceChange;
             if (isNew || psdLayerRect != layerInfo.SrcRect)
             {
                 if (rectTransform.TryGetComponent(out ContentSizeFitter _))
@@ -659,6 +810,25 @@ namespace PSD2UGUI
                 else
                 {
                     if (isNew)
+                    {
+                        forceChange = true;
+                    }
+                    else
+                    {
+                        forceChange = false;
+                        LogColor($"{layerName}的Rect变化，自动改变{rectTransform.name}", "F6F63F");
+                        if (srcSize != layerInfo.SrcSize && (rectTransform.TryGetComponent(out Mask _) || rectTransform.TryGetComponent(out RectMask2D _)))
+                        {
+                            LayoutGroup _layoutGroup = rectTransform.GetComponentInChildren<LayoutGroup>();
+                            if (_layoutGroup != null && !_layoutGroup.transform.TryGetComponent(out PSDLayerGenInfo _))
+                            {
+                                LogImportant($"但是{rectTransform.name}是带遮罩的滚动列表，并且大小变了，所以强行与psd中一致，需要再次手动调大小");
+                                forceChange = true;
+                            }
+                        }
+                    }
+
+                    if (forceChange)
                     {
                         Rect realRect = psdLayerRect;
                         rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, realRect.width);
@@ -678,12 +848,11 @@ namespace PSD2UGUI
                     }
                     else
                     {
-                        LogColor($"{layerName}的Rect变化，自动改变{rectTransform.name}", "F6F63F");
                         Vector2 oldSize = rectTransform.rect.size;
-                        Rect rectManualDiff = new((rectTransform.GetCenterPosition() / rectTransform.lossyScale.x) - layerInfo.SrcRect.center,
-                            oldSize - layerInfo.SrcRect.size);
-                        Rect realRect = new(psdLayerRect.position + rectManualDiff.position,
-                            psdLayerRect.size + rectManualDiff.size);
+                        Vector2 manualChangedPos = (rectTransform.GetCenterPosition() / rectTransform.lossyScale.x) - layerInfo.SrcRect.center;
+                        Vector2 manualChangedSize = oldSize - layerInfo.SrcRect.size;
+                        Rect realRect = new(psdLayerRect.position + manualChangedPos,
+                            psdLayerRect.size + manualChangedSize);
                         Dictionary<Transform, Vector3> childPosDict = new();
                         foreach (Transform child in rectTransform)
                         {
@@ -848,10 +1017,37 @@ namespace PSD2UGUI
 
         private Vector2 GetPsdLayerPosition(Transform transform)
         {
-            Vector2 pos = (transform.position - PsdFile.transform.position) * pixelsPerUnit;
-            pos.x = math.round(pos.x * 1000) / 1000;
-            pos.y = math.round(pos.y * 1000) / 1000;
-            return pos;
+            if (transform.localPosition != default)
+            {
+                Vector2 pos = (transform.position - PsdFile.transform.position) * pixelsPerUnit;
+                pos.x = math.round(pos.x * 1000) / 1000;
+                pos.y = math.round(pos.y * 1000) / 1000;
+                return pos;
+            }
+            float xMin = int.MaxValue;
+            float yMin = int.MaxValue;
+            float xMax = int.MinValue;
+            float yMax = int.MinValue;
+            SpriteRenderer[] renderers = transform.GetComponentsInChildren<SpriteRenderer>();
+            if (renderers.Length > 0)
+            {
+                foreach (SpriteRenderer spriteRenderer in renderers)
+                {
+                    xMin = math.min(xMin, spriteRenderer.bounds.min.x);
+                    yMin = math.min(yMin, spriteRenderer.bounds.min.y);
+                    xMax = math.max(xMax, spriteRenderer.bounds.max.x);
+                    yMax = math.max(yMax, spriteRenderer.bounds.max.y);
+                }
+                xMin = math.round(xMin * 1000) / 1000;
+                yMin = math.round(yMin * 1000) / 1000;
+                xMax = math.round(xMax * 1000) / 1000;
+                yMax = math.round(yMax * 1000) / 1000;
+            }
+            else
+            {
+                xMin = xMax = yMin = yMax = 0;
+            }
+            return new Vector2((xMin + xMax) / 2, (yMin + yMax) / 2) * pixelsPerUnit;
         }
 
         private Vector2 GetPsdSize(Transform transform)
@@ -1048,7 +1244,7 @@ namespace PSD2UGUI
             Debug.Log($"<color=#{color}>{message}</color>");
             logSb.Append("[");
             logSb.Append(color);
-            logSb.Append("]");
+            logSb.Append("]"); 
             logSb.AppendLine(message);
         }
 
