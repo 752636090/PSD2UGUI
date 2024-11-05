@@ -6,6 +6,7 @@
 2. 在编辑器环境中，UI图片组件引用的图片资源(注意不是Image组件)的SprieMode都要求是Single，也就是不能打传统图集
 3. 自动添加的图片的raycastTarget为false
 4. 可以改UI内物体名，但不能改自动管理目录中生成的图片名
+5. 滚动列表(自身 不是Content)的RectTransform要设置pivot，比如纵向滚动列表的pivot是(0,1)，否则美术改了布局之后会出现位置问题
 
 # 重要引用插件
 1. Odin（需自己导入）

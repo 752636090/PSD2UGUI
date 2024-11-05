@@ -21,7 +21,7 @@ namespace PSD2UGUI
         [BoxGroup("LayoutGroup", VisibleIf = "IsLayoutGroupInPsd")]
         public Vector2 LayoutItemSize;
         [BoxGroup("LayoutGroup", VisibleIf = "IsLayoutGroupInPsd")]
-        [Button("UpdateLayout")]
+        [Button("UpdateLayoutGroup")]
         [Tooltip("支持手动新增子物体(Content)作为所有Item的父物体")]
         private void Button_UpdateLayout() => UpdateLayout();
 
