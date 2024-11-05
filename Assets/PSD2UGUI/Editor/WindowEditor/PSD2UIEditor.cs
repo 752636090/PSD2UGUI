@@ -819,8 +819,16 @@ namespace PSD2UGUI
                         LogColor($"{layerName}的Rect变化，自动改变{rectTransform.name}", "F6F63F");
                         if (srcSize != layerInfo.SrcSize && (rectTransform.TryGetComponent(out Mask _) || rectTransform.TryGetComponent(out RectMask2D _)))
                         {
-                            LayoutGroup _layoutGroup = rectTransform.GetComponentInChildren<LayoutGroup>();
-                            if (_layoutGroup != null && !_layoutGroup.transform.TryGetComponent(out PSDLayerGenInfo _))
+                            if (!rectTransform.TryGetComponent(out LayoutGroup layoutGroup))
+                            {
+                                LayoutGroup _layoutGroup = rectTransform.GetComponentInChildren<LayoutGroup>();
+                                if (_layoutGroup != null && !_layoutGroup.transform.TryGetComponent(out PSDLayerGenInfo _))
+                                {
+                                    LogImportant($"但是{rectTransform.name}是带遮罩的滚动列表，并且大小变了，所以强行与psd中一致，需要再次手动调大小");
+                                    forceChange = true;
+                                }
+                            }
+                            else
                             {
                                 LogImportant($"但是{rectTransform.name}是带遮罩的滚动列表，并且大小变了，所以强行与psd中一致，需要再次手动调大小");
                                 forceChange = true;
