@@ -662,7 +662,7 @@ namespace PSD2UGUI
                                 {
                                     Vector2 itemSize = item.TryGetComponent(out LayoutElement layoutElement) && (layoutElement.preferredWidth > 0 || layoutElement.preferredHeight > 0)
                                         ? new Vector2(layoutElement.preferredWidth, layoutElement.preferredHeight)
-                                        : item.rect.size;
+                                        : item.rect.size.Round(3);
                                     if (itemSize == default) // 被GridLayoutGroup控制了
                                     {
                                         itemSize = GetPsdSize(layer.GetChild(0));
@@ -817,23 +817,6 @@ namespace PSD2UGUI
                     {
                         forceChange = false;
                         LogColor($"{layerName}的Rect变化，自动改变{rectTransform.name}", "F6F63F");
-                        if (srcSize != layerInfo.SrcSize && (rectTransform.TryGetComponent(out Mask _) || rectTransform.TryGetComponent(out RectMask2D _)))
-                        {
-                            if (!rectTransform.TryGetComponent(out LayoutGroup layoutGroup))
-                            {
-                                LayoutGroup _layoutGroup = rectTransform.GetComponentInChildren<LayoutGroup>();
-                                if (_layoutGroup != null && !_layoutGroup.transform.TryGetComponent(out PSDLayerGenInfo _))
-                                {
-                                    LogImportant($"但是{rectTransform.name}是带遮罩的滚动列表，并且大小变了，所以强行与psd中一致，需要再次手动调大小");
-                                    forceChange = true;
-                                }
-                            }
-                            else
-                            {
-                                LogImportant($"但是{rectTransform.name}是带遮罩的滚动列表，并且大小变了，所以强行与psd中一致，需要再次手动调大小");
-                                forceChange = true;
-                            }
-                        }
                     }
 
                     if (forceChange)
@@ -842,6 +825,7 @@ namespace PSD2UGUI
                         rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, realRect.width);
                         rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, realRect.height);
                         rectTransform.position = (realRect.position + rectTransform.pivot * realRect.size) * rectTransform.lossyScale.x;
+                        rectTransform.localPosition = rectTransform.localPosition.Round(3);
                         if (rectTransform.TryGetComponent(out LayoutElement layoutElement))
                         {
                             if (layoutElement.preferredWidth > 0)
@@ -857,19 +841,24 @@ namespace PSD2UGUI
                     else
                     {
                         Vector2 oldSize = rectTransform.rect.size;
-                        Vector2 manualChangedPos = (rectTransform.GetCenterPosition() / rectTransform.lossyScale.x) - layerInfo.SrcRect.center;
-                        Vector2 manualChangedSize = oldSize - layerInfo.SrcRect.size;
-                        Rect realRect = new(psdLayerRect.position + manualChangedPos,
-                            psdLayerRect.size + manualChangedSize);
+                        //Vector2 oldPosAffectedByPivot = rectTransform.position / rectTransform.lossyScale.x;
+                        Vector2 oldSrcPosAffectedByPivot = layerInfo.SrcPos + (rectTransform.pivot - Vector2.one / 2) * layerInfo.SrcSize;
+                        //Vector2 manualChangedPos = oldPosAffectedByPivot - oldSrcPosAffectedByPivot;
+                        //Vector2 manualChangedSize = oldSize - layerInfo.SrcRect.size;
+                        Vector2 srcPosAffectedByPivot = srcPos + (rectTransform.pivot - Vector2.one / 2) * srcSize;
+                        Vector2 posChanged = srcPosAffectedByPivot - oldSrcPosAffectedByPivot;
+                        Vector2 sizeChanged = srcSize - layerInfo.SrcRect.size;
+                        Vector2 realSize = oldSize + sizeChanged;
                         Dictionary<Transform, Vector3> childPosDict = new();
                         foreach (Transform child in rectTransform)
                         {
                             childPosDict.Add(child, child.position);
                         }
-                        rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, realRect.width);
-                        rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, realRect.height);
-                        rectTransform.position = (realRect.position + rectTransform.pivot * realRect.size) * rectTransform.lossyScale.x;
+                        rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, realSize.x);
+                        rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, realSize.y);
+                        rectTransform.position += (Vector3)posChanged * rectTransform.lossyScale.x;
                         rectTransform.localPosition = rectTransform.localPosition - Vector3.forward * rectTransform.localPosition.z;
+                        rectTransform.localPosition = rectTransform.localPosition.Round(3);
                         foreach (Transform child in rectTransform)
                         {
                             child.position = childPosDict[child];
@@ -878,11 +867,11 @@ namespace PSD2UGUI
                         {
                             if (layoutElement.preferredWidth > 0)
                             {
-                                layoutElement.preferredWidth += realRect.width - oldSize.x;
+                                layoutElement.preferredWidth += sizeChanged.x;
                             }
                             if (layoutElement.preferredHeight > 0)
                             {
-                                layoutElement.preferredHeight += realRect.height - oldSize.y;
+                                layoutElement.preferredHeight += sizeChanged.y;
                             }
                         }
                     }
@@ -903,6 +892,7 @@ namespace PSD2UGUI
                 , math.round(srcSize.y / refInfo.SrcSize.y * 100) / 100, 1);
             rectTransform.position = (srcPos - srcSize / 2 + rectTransform.pivot * srcSize + manualDiff) * rectTransform.lossyScale.x;
             rectTransform.localPosition = rectTransform.localPosition - Vector3.forward * rectTransform.localPosition.z;
+            rectTransform.localPosition = rectTransform.localPosition.Round(3);
             layerInfo.SrcPos = srcPos;
             layerInfo.SrcSize = srcSize;
         }
@@ -1028,9 +1018,7 @@ namespace PSD2UGUI
             if (transform.localPosition != default)
             {
                 Vector2 pos = (transform.position - PsdFile.transform.position) * pixelsPerUnit;
-                pos.x = math.round(pos.x * 1000) / 1000;
-                pos.y = math.round(pos.y * 1000) / 1000;
-                return pos;
+                return pos.Round(3);
             }
             float xMin = int.MaxValue;
             float yMin = int.MaxValue;
@@ -1046,16 +1034,12 @@ namespace PSD2UGUI
                     xMax = math.max(xMax, spriteRenderer.bounds.max.x);
                     yMax = math.max(yMax, spriteRenderer.bounds.max.y);
                 }
-                xMin = math.round(xMin * 1000) / 1000;
-                yMin = math.round(yMin * 1000) / 1000;
-                xMax = math.round(xMax * 1000) / 1000;
-                yMax = math.round(yMax * 1000) / 1000;
             }
             else
             {
                 xMin = xMax = yMin = yMax = 0;
             }
-            return new Vector2((xMin + xMax) / 2, (yMin + yMax) / 2) * pixelsPerUnit;
+            return (new Vector2((xMin + xMax) / 2, (yMin + yMax) / 2) * pixelsPerUnit).Round(3);
         }
 
         private Vector2 GetPsdSize(Transform transform)
@@ -1074,16 +1058,12 @@ namespace PSD2UGUI
                     xMax = math.max(xMax, spriteRenderer.bounds.max.x);
                     yMax = math.max(yMax, spriteRenderer.bounds.max.y);
                 }
-                xMin = math.round(xMin * 1000) / 1000;
-                yMin = math.round(yMin * 1000) / 1000;
-                xMax = math.round(xMax * 1000) / 1000;
-                yMax = math.round(yMax * 1000) / 1000;
             }
             else
             {
                 xMin = xMax = yMin = yMax = 0;
             }
-            return new Vector2(xMax - xMin, yMax - yMin) * pixelsPerUnit;
+            return (new Vector2(xMax - xMin, yMax - yMin) * pixelsPerUnit).Round(3);
         }
 
         private string GetDefaultTexturePath(string imageName)

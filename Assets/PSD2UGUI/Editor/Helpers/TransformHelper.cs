@@ -93,5 +93,11 @@ namespace PSD2UGUI
             int factor = (int)math.pow(10, decimalPlace);
             return new(math.round(self.x * factor) / factor, math.round(self.y * factor) / factor);
         }
+
+        public static Vector3 Round(this Vector3 self, int decimalPlace = 0)
+        {
+            int factor = (int)math.pow(10, decimalPlace);
+            return new(math.round(self.x * factor) / factor, math.round(self.y * factor) / factor, math.round(self.z * factor));
+        }
     }
 }

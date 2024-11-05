@@ -42,7 +42,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 104, y: -113.005005}
-  m_SizeDelta: {x: 410, y: 219.49}
+  m_SizeDelta: {x: 410, y: 219.49004}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &5112452636062707877
 MonoBehaviour:
@@ -58,7 +58,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   SrcPath: TestGrid
   SrcPos: {x: 104, y: -248}
-  SrcSize: {x: 410, y: 269.99997}
+  SrcSize: {x: 410, y: 270}
   LayoutSpacing: {x: 141, y: 142}
   LayoutItemSize: {x: 128, y: 128}
 --- !u!114 &1958420934057872915
@@ -134,8 +134,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0.000045776367}
+  m_SizeDelta: {x: 0, y: -0.000015258789}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2887144112163381969
 MonoBehaviour:
@@ -151,7 +151,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   SrcPath: TestGrid/128_2
   SrcPos: {x: 245, y: -177}
-  SrcSize: {x: 128, y: 128.00002}
+  SrcSize: {x: 128, y: 128}
   LayoutSpacing: {x: 0, y: 0}
   LayoutItemSize: {x: 0, y: 0}
 --- !u!222 &2165223514622498956
@@ -230,8 +230,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -39.5, y: 35.00003}
-  m_SizeDelta: {x: 1545, y: 1010.00006}
+  m_AnchoredPosition: {x: -39.5, y: 35}
+  m_SizeDelta: {x: 1545, y: 1010}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &7538613472897077700
 MonoBehaviour:
@@ -246,8 +246,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   SrcPath: "\u7EC4 1"
-  SrcPos: {x: -39.5, y: 35.000015}
-  SrcSize: {x: 1545, y: 1010.00006}
+  SrcPos: {x: -39.5, y: 35}
+  SrcSize: {x: 1545, y: 1010}
   LayoutSpacing: {x: 0, y: 0}
   LayoutItemSize: {x: 0, y: 0}
 --- !u!1 &572385854765760267
@@ -378,7 +378,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0.000030517578}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &4281248680454044411
@@ -524,7 +524,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -266.00003, y: 218.99998}
+  m_AnchoredPosition: {x: -266.00006, y: 219.00002}
   m_SizeDelta: {x: 269, y: 381.99997}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2656010202920149526
@@ -541,7 +541,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   SrcPath: "\u7EC4 1/\u56FE\u5C42 1"
   SrcPos: {x: -305.5, y: 254}
-  SrcSize: {x: 269, y: 381.99997}
+  SrcSize: {x: 269, y: 382}
   LayoutSpacing: {x: 0, y: 0}
   LayoutItemSize: {x: 0, y: 0}
 --- !u!222 &7550100617061140983
@@ -617,7 +617,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -638.00006, y: -314.50006}
+  m_AnchoredPosition: {x: -638, y: -314.5}
   m_SizeDelta: {x: 269, y: 381}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &4221653855009236038
@@ -727,7 +727,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   SrcPath: "\u56FE\u5C42 3"
   SrcPos: {x: -367.5, y: -132}
-  SrcSize: {x: 149, y: 195.99998}
+  SrcSize: {x: 149, y: 196}
   LayoutSpacing: {x: 0, y: 0}
   LayoutItemSize: {x: 0, y: 0}
 --- !u!222 &8763638143725403593
@@ -896,7 +896,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0.000030517578}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &8662637566958734662
@@ -1005,8 +1005,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   SrcPath: Bg
-  SrcPos: {x: 0, y: 0}
-  SrcSize: {x: 1920.0001, y: 1080}
+  SrcPos: {x: -0, y: 0}
+  SrcSize: {x: 1920, y: 1080}
   LayoutSpacing: {x: 0, y: 0}
   LayoutItemSize: {x: 0, y: 0}
 --- !u!222 &7110163169621645672
@@ -1079,7 +1079,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 480.50003, y: 411.5}
+  m_AnchoredPosition: {x: 480.50003, y: 411.50006}
   m_SizeDelta: {x: 222, y: 187.00002}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &7841991236419843572
@@ -1096,7 +1096,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   SrcPath: "\u7EC4 1/\u554A"
   SrcPos: {x: 441, y: 446.5}
-  SrcSize: {x: 222, y: 187.00002}
+  SrcSize: {x: 222, y: 187}
   LayoutSpacing: {x: 0, y: 0}
   LayoutItemSize: {x: 0, y: 0}
 --- !u!222 &2616248439117128612
@@ -1172,8 +1172,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0.000045776367}
+  m_SizeDelta: {x: 0, y: -0.000015258789}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &182372944478228804
 MonoBehaviour:
@@ -1189,7 +1189,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   SrcPath: TestGrid/128_0
   SrcPos: {x: -37, y: -177}
-  SrcSize: {x: 128, y: 128.00002}
+  SrcSize: {x: 128, y: 128}
   LayoutSpacing: {x: 0, y: 0}
   LayoutItemSize: {x: 0, y: 0}
 --- !u!222 &1429233433532368366
@@ -1265,7 +1265,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0.000030517578}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &8267316635682226613
@@ -1358,7 +1358,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -633.5, y: 226}
+  m_AnchoredPosition: {x: -633.5, y: 226.00003}
   m_SizeDelta: {x: 277.99997, y: 400}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &3468798077985186846
@@ -1375,7 +1375,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   SrcPath: "\u7EC4 1/RefImage_1"
   SrcPos: {x: -673, y: 261}
-  SrcSize: {x: 277.99997, y: 400}
+  SrcSize: {x: 278, y: 400}
   LayoutSpacing: {x: 0, y: 0}
   LayoutItemSize: {x: 0, y: 0}
 --- !u!222 &9099447992982717538
@@ -1451,8 +1451,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0.000045776367}
+  m_SizeDelta: {x: 0, y: -0.000015258789}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2683455990841897228
 MonoBehaviour:
@@ -1468,7 +1468,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   SrcPath: TestGrid/128_1
   SrcPos: {x: 104, y: -177}
-  SrcSize: {x: 128, y: 128.00002}
+  SrcSize: {x: 128, y: 128}
   LayoutSpacing: {x: 0, y: 0}
   LayoutItemSize: {x: 0, y: 0}
 --- !u!222 &3495712076354027117
@@ -1732,7 +1732,7 @@ MonoBehaviour:
   - TestGrid/128_0_1
   - TestGrid/128_1_1
   - TestGrid/128_2_1
-  SrcSize: {x: 1920.0001, y: 1080}
+  SrcSize: {x: 1920, y: 1080}
 --- !u!114 &8669358281861942775
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1746,8 +1746,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   SrcPath: 
-  SrcPos: {x: 0, y: 0}
-  SrcSize: {x: 1920.0001, y: 1080}
+  SrcPos: {x: -0, y: 0}
+  SrcSize: {x: 1920, y: 1080}
   LayoutSpacing: {x: 0, y: 0}
   LayoutItemSize: {x: 0, y: 0}
 --- !u!1001 &933848741744344075
@@ -1881,7 +1881,7 @@ PrefabInstance:
     - target: {fileID: 7656281774565916378, guid: 3a82a36ca9b5c0d438a5405f96dd3985,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 58.799973
+      value: 58.80001
       objectReference: {fileID: 0}
     - target: {fileID: 7656281774565916378, guid: 3a82a36ca9b5c0d438a5405f96dd3985,
         type: 3}
