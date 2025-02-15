@@ -284,6 +284,8 @@ namespace PSD2UGUI
             HashSet<string> unCheckedOldSrcNames = new(oldSrcNames);
             Dictionary<string, PSDLayerGenInfo> validLayerDict = new(); // Key: SrcName
             HashSet<string> manualDeletedNames = new();
+            List<Transform> manualCreatedLastSiblings = new();
+            List<Transform> manualCreatedFirstSiblings = new();
             #region 收集旧信息
             foreach (Transform oldTrans in prefab.transform.GetAllTransformsDFS())
             {
@@ -292,6 +294,14 @@ namespace PSD2UGUI
                 //    || oldTrans.parent == prefab.transform))
                 {
                     validLayerDict.Add(info.SrcName, info);
+                }
+                else if (oldTrans.GetSiblingIndex() == oldTrans.parent.childCount - 1)
+                {
+                    manualCreatedLastSiblings.Add(oldTrans);
+                }
+                else if (oldTrans.GetSiblingIndex() == 0)
+                {
+                    manualCreatedFirstSiblings.Add(oldTrans);
                 }
             }
             foreach (string srcName in oldSrcNames)
@@ -725,6 +735,17 @@ namespace PSD2UGUI
                 genInfos.AllSrcPaths.Remove(layerInfo.SrcPath);
                 DestroyImmediate(layerInfo.gameObject);
             }
+
+            #region 设置手动创建物体的顺序
+            foreach (Transform transform in manualCreatedLastSiblings)
+            {
+                transform.SetAsLastSibling();
+            }
+            foreach (Transform transform in manualCreatedFirstSiblings)
+            {
+                transform.SetAsFirstSibling();
+            } 
+            #endregion
 
             prefab.transform.localPosition = Vector3.zero;
             if (PrefabUtility.IsAnyPrefabInstanceRoot(prefab))
